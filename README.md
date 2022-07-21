@@ -140,7 +140,7 @@ inputs = {
 | DNS Support            | aws_ec2_transit_gateway_vpc_attachment| `dns_support`                                     | `string`       | `enable`  | No
 | IPv6 Support           | aws_ec2_transit_gateway_vpc_attachment| `ipv6_support`                                    | `string`       | `disable` | No
 | Route Table Association| aws_ec2_transit_gateway_vpc_attachment| `transit_gateway_default_route_table_association` | `bool`         | `true`    | No
-| Route Table Propogation| aws_ec2_transit_gateway_vpc_attachment| `transit_gateway_default_route_table_association` | `bool`         | `true`    | No
+| Route Table Propogation| aws_ec2_transit_gateway_vpc_attachment| `transit_gateway_default_route_table_propogation` | `bool`         | `true`    | No
 | Tags                   | aws_ec2_transit_gateway_vpc_attachment| `tags`                                            | `map(string)`  | `None`    | No
 
 ## Predetermined Inputs
