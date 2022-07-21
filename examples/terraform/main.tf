@@ -1,56 +1,28 @@
 locals {
+  env        = "dev"
   account_id = "12345679810"
-}
-data "aws_iam_roles" "roles" {
-  name_regex  = "AWSReservedSSO_AWSAdministratorAccess_.*"
-  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+  vpc_id     = "vpc-1234ab567"
+  tgw_id_1   = "tgw-1111a11111a1a1aa1"
+  tgw_id_2   = "tgw-2222a22222a2a2aa2"
+  subnet_ids = ["10.26.0.0/19", "10.26.32.0/19", "10.26.64.0/19"]
 }
 
-module "kms-sops" {
-  source                             = "adamwshero/kms/aws"
-  version                            = "~> 1.1.4"
-  is_enabled                         = true
-  name                               = "alias/devops"
-  description                        = "Used for managing devops-maintained encrypted data."
-  deletion_window_in_days            = 7
-  enable_key_rotation                = false
-  key_usage                          = "ENCRYPT_DECRYPT"
-  customer_master_key_spec           = "SYMMETRIC_DEFAULT"
-  bypass_policy_lockout_safety_check = false
-  multi_region                       = false
-  enable_sops                        = true
-  sops_file                          = "${get_terragrunt_dir()}/.sops.yaml"
-  prevent_destroy                    = false
-  lifecycle = {
-    prevent_destroy = true
-  }
+module "transit_gateway_attachment" {
+  source  = "adamwshero/transit-gateway-attachment/aws"
+  version = "~> 1.0.0"
 
-  policy = jsonencode(
-    {
-      "Sid" : "Enable IAM policies",
-      "Effect" : "Allow",
-      "Principal" : {
-        "AWS" : "arn:aws:iam::${account_id}:root"
-      },
-      "Action" : "kms:*",
-      "Resource" : "*"
-    },
-    {
-      "Version" : "2012-10-17",
-      "Id" : "1",
-      "Statement" : [
-        {
-          "Sid" : "Account Permissions",
-          "Effect" : "Allow",
-          "Principal" : {
-            "AWS" : "${data.aws_iam_roles.roles.arns}"
-          },
-          "Action" : "kms:*",
-          "Resource" : "*"
-        }
-      ]
+  transit_gateway_attachments = {
+    attachment-1 = {
+      vpc_id             = local.vpc_id
+      transit_gateway_id = local.tgw_id_1
+      subnet_ids         = local.subnet_ids
     }
-  )
+    attachment-2 = {
+      vpc_id             = local.vpc_id
+      transit_gateway_id = local.tgw_id_2
+      subnet_ids         = local.subnet_ids
+    }
+  }
   tags = {
     Environment        = local.env
     Owner              = "DevOps"

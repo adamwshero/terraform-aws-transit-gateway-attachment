@@ -1,16 +1,7 @@
-output "arn" {
-  description = "Arn of the Customer Managed Key (CMK)"
-  value       = aws_kms_key.this.arn
-}
-output "key_id" {
-  description = "Id of the Customer Managed Key (CMK)"
-  value       = aws_kms_key.this.key_id
-}
-output "sops_file" {
-  description = "Output of the newly created KMS SOPS file."
-  value       = <<EOF
----
-creation_rules:
-  - kms: ${aws_kms_key.this.arn}
-EOF
+output "transit_gateway_attachments" {
+  description = "Map of transit gateway attachments."
+    value = {
+        for transit_gateway_attachments in keys(var.transit_gateway_attachments):
+          transit_gateway_attachments => aws_ec2_transit_gateway_vpc_attachment.this[transit_gateway_attachments].*[0].*  
+  }
 }

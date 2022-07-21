@@ -8,11 +8,11 @@
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/adamwshero/terraform-aws-kms?color=lightgreen&label=latest%20tag%3A&style=for-the-badge)
 <br>
 <br>
-# terraform-aws-kms
+# terraform-aws-transit-gateway-attachment
 
-Terraform module to create Amazon Customer Managed Key (CMK) including optional use with [Mozilla SOPS](https://github.com/mozilla/sops).
+Terraform module to create one or many Amazon Transit Gateway Attachments to an existing Amazon Transit Gateway.
 
-[Amazon Key Management Service (KMS)](https://aws.amazon.com/kms/) makes it easy for you to create and manage cryptographic keys and control their use across a wide range of AWS services and in your applications. AWS KMS is a secure and resilient service that uses hardware security modules that have been validated under FIPS 140-2, or are in the process of being validated, to protect your keys. AWS KMS is integrated with AWS CloudTrail to provide you with logs of all key usage to help meet your regulatory and compliance needs.
+[Amazon Transit Gateway (TGW)](https://aws.amazon.com/transit-gateway/) connects your Amazon Virtual Private Clouds (VPCs) and on-premises networks through a central hub. This simplifies your network and puts an end to complex peering relationships. It acts as a cloud router – each new connection is only made once. Attachments to your TGW can be made from any account in your organization to enable cross-account connectivity.
 
 ## Examples
 
@@ -21,58 +21,36 @@ Look at our [Terraform example](latest/examples/terraform/) where you can get a 
 
 ## Usage
 
-You can create a customer managed key (CMK) for use with the [Mozilla SOPS](https://github.com/mozilla/sops) tool. The module will create the CMK and gives you an option to also create a kms-sops.yaml for you to use with the SOPS tool for encrypting and decrypting files.
+You can create a transit gateway attachment for an existing transit gateway in your organization. You can also create multiple transit gateway attachments if you have more than one transit gateway in your organization that you need to attach in a given account.
 
-### Terraform Example with optional SOPS file and lifecycle policy.
+### Terraform Example with multiple TGW attachment use-case.
 
 ```
-module "kms-sops" {
-  source                             = "adamwshero/kms/aws"
-  version                            = "~> 1.1.4"
-  is_enabled                         = true
-  name                               = "alias/devops"
-  description                        = "Used for managing devops-maintained encrypted data."
-  deletion_window_in_days            = 7
-  enable_key_rotation                = false
-  key_usage                          = "ENCRYPT_DECRYPT"
-  customer_master_key_spec           = "SYMMETRIC_DEFAULT"
-  bypass_policy_lockout_safety_check = false
-  multi_region                       = false
-  enable_sops                        = true
-  sops_file                          = "${get_terragrunt_dir()}/.sops.yaml"
-  prevent_destroy                    = false
+locals {
+  env        = "dev"
+  account_id = "12345679810"
+  vpc_id     = "vpc-1234ab567"
+  tgw_id_1   = "tgw-1111a11111a1a1aa1"
+  tgw_id_2   = "tgw-2222a22222a2a2aa2"
+  subnet_ids = ["10.26.0.0/19", "10.26.32.0/19", "10.26.64.0/19"]
+}
 
-  lifecycle = {
-    prevent_destroy = true
-  }
+module "transit_gateway_attachment" {
+  source  = "adamwshero/transit-gateway-attachment/aws"
+  version = "~> 1.0.0"
 
-  policy = jsonencode(
-    {
-      "Sid" : "Enable IAM policies",
-      "Effect" : "Allow",
-      "Principal" : {
-        "AWS" : "arn:aws:iam::${account_id}:root"
-      },
-      "Action" : "kms:*",
-      "Resource" : "*"
-    },
-    {
-      "Version" : "2012-10-17",
-      "Id" : "1",
-      "Statement" : [
-        {
-          "Sid" : "Account Permissions",
-          "Effect" : "Allow",
-          "Principal" : {
-            "AWS" : "${data.aws_iam_roles.roles.arns}"
-          },
-          "Action" : "kms:*",
-          "Resource" : "*"
-        }
-      ]
+  transit_gateway_attachments = {
+    attachment-1 = {
+      vpc_id             = local.vpc_id
+      transit_gateway_id = local.tgw_id_1
+      subnet_ids         = local.subnet_ids
     }
-  )
-
+    attachment-2 = {
+      vpc_id             = local.vpc_id
+      transit_gateway_id = local.tgw_id_2
+      subnet_ids         = local.subnet_ids
+    }
+  }
   tags = {
     Environment        = local.env
     Owner              = "DevOps"
@@ -81,52 +59,51 @@ module "kms-sops" {
 }
 ```
 
-### Terragrunt Example with optional SOPS file and lifecycle policy.
+### Terragrunt Example with multiple TGW attachment use-case.
 
 ```
 locals {
-  account     = read_terragrunt_config(find_in_parent_folders("terragrunt.hcl"))
-  region      = read_terragrunt_config(find_in_parent_folders("terragrunt.hcl"))
-  environment = read_terragrunt_config(find_in_parent_folders("terragrunt.hcl"))
-  sso_admin   = "arn:aws:iam::{accountid}:role/my_trusted_role"
-  account_id  = "12345679810"
+  account     = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+  region      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  product     = read_terragrunt_config(find_in_parent_folders("product.hcl"))
+  environment = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  tags = merge(
+    local.product.locals.tags,
+    local.additional_tags
+  )
+  additional_tags = {
+  }
 }
 
 include {
   path = find_in_parent_folders()
 }
 
+dependency "vpc" {
+  config_path = "../vpc"
+}
+
 terraform {
-  source = "git@github.com:adamwshero/terraform-aws-kms.git//.?ref=1.1.4"
+  source = "git@github.com:adamwshero/terraform-aws-transit-gateway-attachment//.?ref=1.0.0"
 }
 
 inputs = {
-  is_enabled                         = true
-  name                               = "alias/devops"
-  description                        = "Used for managing devops-maintained encrypted data."
-  deletion_window_in_days            = 7
-  enable_key_rotation                = false
-  key_usage                          = "ENCRYPT_DECRYPT"
-  customer_master_key_spec           = "SYMMETRIC_DEFAULT"
-  bypass_policy_lockout_safety_check = false
-  multi_region                       = false
-  enable_sops                        = true
-  sops_file                          = "${get_terragrunt_dir()}/.sops.yaml"
-  prevent_destroy                    = false
-  lifecycle = {
-    prevent_destroy = true
+  transit_gateway_attachments = {
+    attachment-1 = {
+      vpc_id             = dependency.vpc.outputs.vpc_id
+      transit_gateway_id = local.account.locals.tgw_id_1
+      subnet_ids         = dependency.vpc.outputs.private_subnets
+    }
+    attachment-2 = {
+      vpc_id             = dependency.vpc.outputs.vpc_id
+      transit_gateway_id = local.account.locals.tgw_id_2
+      subnet_ids         = dependency.vpc.outputs.private_subnets
+    }
   }
 
-  policy = templatefile("${get_terragrunt_dir()}/policy.json.tpl", {
-    sso_admin = local.sso_admin
-    account_id = local.account_id
-  })
-  tags = {
-    Environment        = local.env.locals.env
-    Owner              = "DevOps"
-    CreatedByTerraform = true
-  }
+  tags = local.tags
 }
+
 ```
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
@@ -134,7 +111,7 @@ inputs = {
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 2.67.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.0.0 |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 
 | <a name="requirement_terragrunt"></a> [terragrunt](#requirement\_terragrunt) | >= 0.28.0 |
 
@@ -142,45 +119,39 @@ inputs = {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 2.67.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.0.0 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [aws_kms_key.rsm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
-| [aws_kms_alias.rsm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias) | resource |
-| [sops_file.rsm](https://registry.terraform.io/providers/carlpett/sops/latest/docs/data-sources/file) | resource |
+| [aws_ec2_transit_gateway_vpc_attachment.rsm](https://registry.terraform.io/providers/aaronfeng/aws/latest/docs/resources/ec2_transit_gateway_vpc_attachment)
 
 
 ## Available Inputs
 
-| Name                | Resource    |  Variable                  | Data Type    | Default             | Required?
-| --------------------| ------------|----------------------------| -------------|---------------------|----------
-| Alias               |aws_kms_alias| `alias`                    | `string`     | `""`                | No
-| Description         | aws_kms_key | `description`              | `string`     | `""`                | No
-| Deletion Window     | aws_kms_key | `deletion_window_in_days`  | `number`     | `7`                 | No
-| Enable Key Rotation | aws_kms_key | `enable_key_rotation`      | `bool`       | `false`             | No
-| Key Usage           | aws_kms_key | `key_usage`                | `string`     | `ENCRYPT_DECRYPT`   | No
-| Key Spec            | aws_kms_key | `customer_master_key_spec` | `string`     | `SYMMETRIC_DEFAULT` | No
-| Multi-Region        | aws_kms_key | `multi_region`             | `bool`       | `false`             | No
-| Policy              | aws_kms_key | `policy`                   | `string`     | `""`                | No
-| Tags                | aws_kms_key | `tags`                     | `map(string)`| `""`                | No
-| Local SOPS File     | sops_file   | `sops_file`                | `string`     | `""`                | Yes
-| Enable SOPS File    | sops_file   | `enable_sops`              | `string`     | `true`              | No
+| Name                   | Resource                              |  Variable                                         | Data Type      | Default   | Required?
+| -----------------------| --------------------------------------|---------------------------------------------------|----------------|-----------|----------
+| Create TGW Attachment  | aws_ec2_transit_gateway_vpc_attachment| `create_attachment`                               | `bool`         | `true`    | Yes
+| VPC Id                 | aws_ec2_transit_gateway_vpc_attachment| `vpc_id`                                          | `string`       | `""`      | Yes
+| Subnet Ids             | aws_ec2_transit_gateway_vpc_attachment| `subnet_ids`                                      | `list(string)` | `[""]`    | Yes
+| Transit Gateway Id     | aws_ec2_transit_gateway_vpc_attachment| `transit_gateway_id`                              | `string`       | `true`    | Yes
+| Appliance Mode Support | aws_ec2_transit_gateway_vpc_attachment| `appliance_mode_support`                          | `string`       | `disable` | No
+| DNS Support            | aws_ec2_transit_gateway_vpc_attachment| `dns_support`                                     | `string`       | `enable`  | No
+| IPv6 Support           | aws_ec2_transit_gateway_vpc_attachment| `ipv6_support`                                    | `string`       | `disable` | No
+| Route Table Association| aws_ec2_transit_gateway_vpc_attachment| `transit_gateway_default_route_table_association` | `bool`         | `true`    | No
+| Route Table Propogation| aws_ec2_transit_gateway_vpc_attachment| `transit_gateway_default_route_table_association` | `bool`         | `true`    | No
+| Tags                   | aws_ec2_transit_gateway_vpc_attachment| `tags`                                            | `map(string)`  | `None`    | No
 
 ## Predetermined Inputs
 
-| Name                | Resource    |  Property                 | Data Type    | Default                 | Required?
-| --------------------| ------------|---------------------------| -------------|-------------------------|----------
-| Target KMS Key Id   |aws_kms_alias| `target_key_id`           | `string`     |`aws_kms_key.this.key.id`| Yes
-| SOPS File Creation  | sops_file   | `creation_rules`          | `string`     | `aws_kms_key.this.arn`  | Yes
-| SOPS File Permission| sops_file   | `file_permission`         | `string`     | `0600`                  | Yes
+| Name                        | Resource                               |  Property                     | Data Type    | Default                 | Required?
+| ----------------------------| ---------------------------------------|-------------------------------| -------------|-------------------------|----------
+| - | - | - | - | - | -
+
 
 ## Outputs
 
-| Name      | Description                      |
-|-----------|----------------------------------|
-| CMK Arn   | Arn of the customer managed key. |
-| CMK Id    | Id of the customer managed key.  |
-| SOPS File | Contents of the SOPS file.       |
+| Name                        | Description                         |
+|-----------------------------|-------------------------------------|
+|Transit Gateway Attachments | map(list(map)) of your attachments. |
