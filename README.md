@@ -15,19 +15,21 @@ Terraform module to create one or many Amazon Transit Gateway Attachments to an 
 [Amazon Transit Gateway (TGW)](https://aws.amazon.com/transit-gateway/) connects your Amazon Virtual Private Clouds (VPCs) and on-premises networks through a central hub. This simplifies your network and puts an end to complex peering relationships. It acts as a cloud router – each new connection is only made once. Attachments to your TGW can be made from any account in your organization to enable cross-account connectivity.
 
 ## Module Capabilities
- - Supports TGW Routes
- - Supports NAT Gateway routes
- - Supports Local Gateway routes
- - Supports Network Interface routes
- - Supports VPC Endpoint routes
- - Supports VPC Peering routes
+  * Supports (One or Many) of the following:
+    * Transit Gateway Attachments 
+    * TGW Routes
+    * NAT Gateway routes
+    * Local Gateway routes
+    * Network Interface routes
+    * VPC Endpoint routes
+    * VPC Peering routes
 
 
  ## Assumptions
-  - VPC Peering
-    - VPC peers are already in place. This is because when we create routes in the route table(s), we need to already know the peering Id to create this route.
-  - Transit Gateway
-    - A transit gateway already exists somewhere in the AWS Organization. This Id is used when creating transit gateway attachments.
+  * VPC Peering
+    * VPC peers are already in place. This is because when we create routes in the route table(s), we need to already know the peering Id to create this route.
+  * Transit Gateway
+    * A transit gateway already exists somewhere in the AWS Organization. This Id is used when creating transit gateway attachments.
 
 ## Usage
 
