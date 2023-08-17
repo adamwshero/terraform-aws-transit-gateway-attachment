@@ -1,20 +1,32 @@
-locals {
-  env                       = "dev"
-  account_id                = "12345679810"
-  vpc_id                    = "vpc-1234ab567"
-  tgw_id_1                  = "tgw-1111a11111a1a1aa1"
-  tgw_id_2                  = "tgw-2222a22222a2a2aa2"
-  nat_gateway_id            = "...."
-  transit_gateway_id        = "...."
-  local_gateway_id          = "...."
-  vpc_endpoint_id           = "...."
-  vpc_peering_connection_id = "pcx-123456789"
-  subnet_ids                = ["10.26.0.0/19", "10.26.32.0/19", "10.26.64.0/19"]
-}
-module "transit_gateway_attachment" {
-  source  = "adamwshero/transit-gateway-attachment/aws"
-  version = "~> 1.5.0"
+# Complete Plan Example 
 
+```
+locals {
+  account     = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+  region      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  product     = read_terragrunt_config(find_in_parent_folders("product.hcl"))
+  environment = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  tags = merge(
+    local.product.locals.tags,
+    local.additional_tags
+  )
+  additional_tags = {
+  }
+}
+
+include {
+  path = find_in_parent_folders()
+}
+
+dependency "vpc" {
+  config_path = "../vpc"
+}
+
+terraform {
+  source = "git@github.com:adamwshero/terraform-aws-transit-gateway-attachment//.?ref=1.5.0"
+}
+
+inputs = {
   transit_gateway_attachments = {
     attachment-1 = {
       vpc_id             = dependency.vpc.outputs.vpc_id
@@ -27,6 +39,7 @@ module "transit_gateway_attachment" {
       subnet_ids         = dependency.vpc.outputs.private_subnets
     }
   }
+
   transit_gateway_routes = {
     private_routes = {
       route_table_ids         = dependency.vpc.outputs.private_route_table_ids
@@ -39,6 +52,7 @@ module "transit_gateway_attachment" {
       transit_gateway_id      = local.transit_gateway_id
     }
   }
+
   vpc_peering_routes = {
     private_routes = {
       route_table_ids           = dependency.vpc.outputs.private_route_table_ids
@@ -51,6 +65,7 @@ module "transit_gateway_attachment" {
       vpc_peering_connection_id = local.vpc_peering_connection_id
     }
   }
+
   nat_gateway_routes = {
     private_routes = {
       route_table_ids         = dependency.vpc.outputs.private_route_table_ids
@@ -63,6 +78,7 @@ module "transit_gateway_attachment" {
       nat_gateway_id          = local.nat_gateway_id
     }
   }
+
   local_gateway_routes = {
     private_routes = {
       route_table_ids         = dependency.vpc.outputs.private_route_table_ids
@@ -75,6 +91,7 @@ module "transit_gateway_attachment" {
       local_gateway_id        = local.local_gateway_id
     }
   }
+
   vpc_endpoint_routes = {
     private_routes = {
       route_table_ids         = dependency.vpc.outputs.private_route_table_ids
@@ -87,9 +104,6 @@ module "transit_gateway_attachment" {
       vpc_endpoint_id         = local.vpc_endpoint_id
     }
   }
-  tags = {
-    Environment        = local.env
-    Owner              = "DevOps"
-    CreatedByTerraform = true
-  }
+  tags = local.tags
 }
+```
