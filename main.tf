@@ -79,7 +79,10 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "this" {
   transit_gateway_default_route_table_association = var.transit_gateway_default_route_table_association
   transit_gateway_default_route_table_propagation = var.transit_gateway_default_route_table_propagation
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    tomap({ "Name" = each.key })
+  )
 }
 
 resource "aws_ec2_transit_gateway_peering_attachment" "this" {
@@ -90,16 +93,22 @@ resource "aws_ec2_transit_gateway_peering_attachment" "this" {
   peer_transit_gateway_id = each.value.peer.transit_gateway_id
   transit_gateway_id      = each.value.transit_gateway_id
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    tomap({ "Name" = each.key })
+  )
 }
 
 resource "aws_ec2_transit_gateway_peering_attachment_accepter" "this" {
 
-  for_each = { for k, v in var.transit_gateway_peering_attachments : k => v if var.create_peering_attachment_accepter }
+  for_each = { for k, v in var.transit_gateway_peering_attachments_accepter : k => v if var.create_peering_attachment_accepter }
 
   transit_gateway_attachment_id = each.value.transit_gateway_attachment_id
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    tomap({ "Name" = each.key })
+  )
 }
 
 resource "aws_route" "this_tgw_route" {

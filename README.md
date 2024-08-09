@@ -23,17 +23,20 @@ Terraform module to create one or many Amazon Transit Gateway Attachments to an 
     * Network Interface routes
     * VPC Endpoint routes
     * VPC Peering routes
-
+    * TGW attachment peer type
+    * TGW attachment peer accepter
 
  ## Assumptions
   * VPC Peering
     * VPC peers are already in place. This is because when we create routes in the route table(s), we need to already know the peering Id to create this route.
   * Transit Gateway
     * A transit gateway already exists somewhere in the AWS Organization. This Id is used when creating transit gateway attachments.
+  * Transit Gateway peering (Advanced scenario)
+    * You need at least 2 transit gateways, peer and accepter.
 
 ## Usage
 
-You can create a transit gateway attachment for an existing transit gateway in your organization. You can also create multiple transit gateway attachments if you have more than one transit gateway in your organization that you need to attach in a given account.
+You can create a transit gateway attachment for an existing transit gateway in your organization. You can also create multiple transit gateway attachments if you have more than one transit gateway in your organization that you need to attach in a given account. You can also create transit gateway peering attachments between multiple transit gateways.
 
 ### Terraform Basic Example
 
@@ -160,6 +163,7 @@ No modules.
 | <a name="input_transit_gateway_default_route_table_propagation"></a> [transit\_gateway\_default\_route\_table\_propagation](#input\_transit\_gateway\_default\_route\_table\_propagation) | (Optional) Boolean whether the VPC Attachment should propagate routes with the EC2 Transit Gateway propagation default route table. This cannot be configured or perform drift detection with Resource Access Manager shared EC2 Transit Gateways. Default value: `true`. | `bool` | `true` | no |
 | <a name="input_transit_gateway_id"></a> [transit\_gateway\_id](#input\_transit\_gateway\_id) | (Required) Identifier of EC2 Transit Gateway. | `string` | `""` | no |
 | <a name="input_transit_gateway_peering_attachments"></a> [transit\_gateway\_peering\_attachments](#input\_transit\_gateway\_peering\_attachments) | Map of objects that define the transit gateway peering attachments to be created | `any` | `{}` | no |
+| <a name="input_transit_gateway_peering_attachments_accepter"></a> [transit\_gateway\_peering\_attachments\_accepter](#input\_transit\_gateway\_peering\_attachments\_accepter) | Map of objects that define the transit gateway peering attachments to be created | `any` | `{}` | no |
 | <a name="input_transit_gateway_routes"></a> [transit\_gateway\_routes](#input\_transit\_gateway\_routes) | Map of objects that define the transit gateway routes to be created | `any` | `{}` | no |
 | <a name="input_vpc_endpoint_routes"></a> [vpc\_endpoint\_routes](#input\_vpc\_endpoint\_routes) | Map of objects that define the nat gateway routes to be created | `any` | `{}` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | (Required) Identifier of EC2 VPC. | `string` | `""` | no |

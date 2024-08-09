@@ -30,6 +30,27 @@ module "transit_gateway_attachment" {
       subnet_ids         = dependency.vpc.outputs.private_subnets
     }
   }
+
+  create_peering_attachment          = true
+  create_peering_attachment_accepter = true
+
+  transit_gateway_peering_attachments = {
+      attachment-1 = {
+        peer = {
+          account_id         = local.account_id
+          region             = local.region
+          transit_gateway_id = local.account.locals.tgw_id_2
+        },
+        transit_gateway_id = local.account.locals.tgw_id_1
+      }
+
+  transit_gateway_peering_attachments_accepter = {
+      attachment-1 = {
+        transit_gateway_attachment_id = local.account.locals.tgw_id_1
+      }
+    }
+  }
+
   transit_gateway_routes = {
     private_routes = {
       route_table_ids         = dependency.vpc.outputs.private_route_table_ids

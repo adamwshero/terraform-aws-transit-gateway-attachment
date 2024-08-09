@@ -79,6 +79,12 @@ variable "transit_gateway_peering_attachments" {
   default     = {}
 }
 
+variable "transit_gateway_peering_attachments_accepter" {
+  description = "Map of objects that define the transit gateway peering attachments to be created"
+  type        = any
+  default     = {}
+}
+
 ######################
 # Route Table Routes #
 ######################
