@@ -16,23 +16,24 @@ Terraform module to create one or many Amazon Transit Gateway Attachments to an 
 
 ## Module Capabilities
   * Supports (One or Many) of the following:
-    * Transit Gateway Attachments 
+    * Transit Gateway Attachments
+    * Transit Gateway Peering Attachment
+    * Transit Gateway Peering Attachment Accepter
     * TGW Routes
     * NAT Gateway routes
     * Local Gateway routes
     * Network Interface routes
     * VPC Endpoint routes
     * VPC Peering routes
-    * TGW attachment peer type
-    * TGW attachment peer accepter
+
 
  ## Assumptions
   * VPC Peering
     * VPC peers are already in place. This is because when we create routes in the route table(s), we need to already know the peering Id to create this route.
   * Transit Gateway
     * A transit gateway already exists somewhere in the AWS Organization. This Id is used when creating transit gateway attachments.
-  * Transit Gateway peering (Advanced scenario)
-    * You need at least 2 transit gateways, peer and accepter.
+  * Transit Gateway Peering (Advanced scenario)
+    * You need at least 2 transit gateways, a peer and an accepter.
 
 ## Usage
 
