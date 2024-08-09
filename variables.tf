@@ -2,10 +2,23 @@
 # TGW Attachment
 #################
 variable "create_attachment" {
-  description = "Determines whether to create the attachment or not."
+  description = "Determines whether to create tgw attachment or not."
   type        = bool
   default     = true
 }
+
+variable "create_peering_attachment" {
+  description = "Determines whether to create a tgw peering attachment or not."
+  type        = bool
+  default     = false
+}
+
+variable "create_peering_attachment_accepter" {
+  description = "Determines whether to create a tgw peering attachment or not."
+  type        = bool
+  default     = false
+}
+
 variable "vpc_id" {
   description = "(Required) Identifier of EC2 VPC."
   type        = string
@@ -56,6 +69,12 @@ variable "transit_gateway_default_route_table_propagation" {
 
 variable "transit_gateway_attachments" {
   description = "Map of objects that define the transit gateway attachments to be created"
+  type        = any
+  default     = {}
+}
+
+variable "transit_gateway_peering_attachments" {
+  description = "Map of objects that define the transit gateway peering attachments to be created"
   type        = any
   default     = {}
 }

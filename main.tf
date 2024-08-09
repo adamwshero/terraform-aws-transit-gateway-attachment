@@ -82,6 +82,26 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "this" {
   tags = var.tags
 }
 
+resource "aws_ec2_transit_gateway_peering_attachment" "this" {
+  for_each = { for k, v in var.transit_gateway_peering_attachments : k => v if var.create_peering_attachment }
+
+  peer_account_id         = each.value.peer.account_id
+  peer_region             = each.value.peer.region
+  peer_transit_gateway_id = each.value.peer.transit_gateway_id
+  transit_gateway_id      = each.value.transit_gateway_id
+
+  tags = var.tags
+}
+
+resource "aws_ec2_transit_gateway_peering_attachment_accepter" "this" {
+
+  for_each = { for k, v in var.transit_gateway_peering_attachments : k => v if var.create_peering_attachment_accepter }
+
+  transit_gateway_attachment_id = each.value.transit_gateway_attachment_id
+
+  tags = var.tags
+}
+
 resource "aws_route" "this_tgw_route" {
   for_each = { for route in local.tgw_routes : "${route.route_table_id}.${route.destination_cidr_block}.${route.transit_gateway_id}" => route }
 
