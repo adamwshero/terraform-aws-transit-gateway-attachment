@@ -16,7 +16,9 @@ Terraform module to create one or many Amazon Transit Gateway Attachments to an 
 
 ## Module Capabilities
   * Supports (One or Many) of the following:
-    * Transit Gateway Attachments 
+    * Transit Gateway Attachments
+    * Transit Gateway Peering Attachment
+    * Transit Gateway Peering Attachment Accepter
     * TGW Routes
     * NAT Gateway routes
     * Local Gateway routes
@@ -30,10 +32,12 @@ Terraform module to create one or many Amazon Transit Gateway Attachments to an 
     * VPC peers are already in place. This is because when we create routes in the route table(s), we need to already know the peering Id to create this route.
   * Transit Gateway
     * A transit gateway already exists somewhere in the AWS Organization. This Id is used when creating transit gateway attachments.
+  * Transit Gateway Peering (Advanced scenario)
+    * You need at least 2 transit gateways, a peer and an accepter.
 
 ## Usage
 
-You can create a transit gateway attachment for an existing transit gateway in your organization. You can also create multiple transit gateway attachments if you have more than one transit gateway in your organization that you need to attach in a given account.
+You can create a transit gateway attachment for an existing transit gateway in your organization. You can also create multiple transit gateway attachments if you have more than one transit gateway in your organization that you need to attach in a given account. You can also create transit gateway peering attachments between multiple transit gateways.
 
 ### Terraform Basic Example
 
@@ -107,7 +111,7 @@ inputs = {
 
 ```
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -122,46 +126,54 @@ inputs = {
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.0.0 |
 
+## Modules
+
+No modules.
+
 ## Resources
 
 | Name | Type |
 |------|------|
-| [aws_ec2_transit_gateway_vpc_attachment.rsm](https://registry.terraform.io/providers/aaronfeng/aws/latest/docs/resources/ec2_transit_gateway_vpc_attachment) | resource
-| [aws_route.rsm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource
+| [aws_ec2_transit_gateway_peering_attachment.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_peering_attachment) | resource |
+| [aws_ec2_transit_gateway_peering_attachment_accepter.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_peering_attachment_accepter) | resource |
+| [aws_ec2_transit_gateway_vpc_attachment.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_vpc_attachment) | resource |
+| [aws_route.this_local_gateway_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.this_nat_gateway_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.this_network_interface_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.this_tgw_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.this_vpc_endpoint_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.this_vpc_peering_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
 
+## Inputs
 
-## Available Inputs
-
-| Name                        | Resource                               |  Variable                                         | Data Type      | Default   | Required?
-| --------------------------- | ---------------------------------------|---------------------------------------------------|----------------|-----------|----------
-| Create TGW Attachment       | aws_ec2_transit_gateway_vpc_attachment | `create_attachment`                               | `bool`         | `true`    | Yes
-| VPC Id                      | aws_ec2_transit_gateway_vpc_attachment | `vpc_id`                                          | `string`       | `""`      | Yes
-| Subnet Ids                  | aws_ec2_transit_gateway_vpc_attachment | `subnet_ids`                                      | `list(string)` | `[""]`    | Yes
-| Transit Gateway Id          | aws_ec2_transit_gateway_vpc_attachment | `transit_gateway_id`                              | `string`       | `true`    | Yes
-| Appliance Mode Support      | aws_ec2_transit_gateway_vpc_attachment | `appliance_mode_support`                          | `string`       | `disable` | No
-| DNS Support                 | aws_ec2_transit_gateway_vpc_attachment | `dns_support`                                     | `string`       | `enable`  | No
-| IPv6 Support                | aws_ec2_transit_gateway_vpc_attachment | `ipv6_support`                                    | `string`       | `disable` | No
-| Route Table Association     | aws_ec2_transit_gateway_vpc_attachment | `transit_gateway_default_route_table_association` | `bool`         | `true`    | No
-| Route Table Propogation     | aws_ec2_transit_gateway_vpc_attachment | `transit_gateway_default_route_table_propogation` | `bool`         | `true`    | No
-| Tags                        | aws_ec2_transit_gateway_vpc_attachment | `tags`                                            | `map(string)`  | `None`    | No
-| Transit Gateway Attachments | aws_ec2_transit_gateway_vpc_attachment | `transit_gateway_attachments`                     | `map(any)`     | ``        | No
-| Transit Gateway Routes      | aws_route                              | `transit_gateway_routes`                          | `map(any)`     | ``        | No
-| VPC Peering Routes          | aws_route                              | `vpc_peering_routes`                              | `map(any)`     | ``        | No
-| NAT Gateway Routes          | aws_route                              | `nat_gateway_routes`                              | `map(any)`     | ``        | No
-| Local Gateway Routes        | aws_route                              | `local_gateway_routes`                            | `map(any)`     | ``        | No
-| Network Interface Routes    | aws_route                              | `network_interface_routes`                        | `map(any)`     | ``        | No
-| VPC Endpoint Routes         | aws_route                              | `vpc_endpoint_routes`                             | `map(any)`     | ``        | No
-
-## Predetermined Inputs
-
-| Name                        | Resource                               |  Property                     | Data Type    | Default                 | Required?
-| ----------------------------| ---------------------------------------|-------------------------------| -------------|-------------------------|----------
-| - | - | - | - | - | -
-
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_appliance_mode_support"></a> [appliance\_mode\_support](#input\_appliance\_mode\_support) | (Optional) Whether Appliance Mode support is enabled. If enabled, a traffic flow between a source and destination uses the same Availability Zone for the VPC attachment for the lifetime of that flow. Valid values: `disable`, `enable`. Default value: `disable`. | `string` | `"disable"` | no |
+| <a name="input_create_attachment"></a> [create\_attachment](#input\_create\_attachment) | Determines whether to create tgw attachment or not. | `bool` | `true` | no |
+| <a name="input_create_peering_attachment"></a> [create\_peering\_attachment](#input\_create\_peering\_attachment) | Determines whether to create a tgw peering attachment or not. | `bool` | `false` | no |
+| <a name="input_create_peering_attachment_accepter"></a> [create\_peering\_attachment\_accepter](#input\_create\_peering\_attachment\_accepter) | Determines whether to create a tgw peering attachment or not. | `bool` | `false` | no |
+| <a name="input_dns_support"></a> [dns\_support](#input\_dns\_support) | (Optional) Whether DNS support is `enabled`. Valid values: `disable`, `enable`. Default value: `enable`. | `string` | `"enable"` | no |
+| <a name="input_ipv6_support"></a> [ipv6\_support](#input\_ipv6\_support) | (Optional) Whether IPv6 support is `enabled`. Valid values: `disable`, `enable`. Default value: `disable`. | `string` | `"disable"` | no |
+| <a name="input_local_gateway_routes"></a> [local\_gateway\_routes](#input\_local\_gateway\_routes) | Map of objects that define the local gateway routes to be created | `any` | `{}` | no |
+| <a name="input_nat_gateway_routes"></a> [nat\_gateway\_routes](#input\_nat\_gateway\_routes) | Map of objects that define the nat gateway routes to be created | `any` | `{}` | no |
+| <a name="input_network_interface_routes"></a> [network\_interface\_routes](#input\_network\_interface\_routes) | Map of objects that define the network interface routes to be created | `any` | `{}` | no |
+| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | (Required) Identifiers of EC2 Subnets. | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | (Optional) Key-value tags for the EC2 Transit Gateway VPC Attachment. If configured with a provider `default_tags` configuration block present, tags with matching keys will overwrite those defined at the provider-level. | `map(string)` | n/a | yes |
+| <a name="input_transit_gateway_attachments"></a> [transit\_gateway\_attachments](#input\_transit\_gateway\_attachments) | Map of objects that define the transit gateway attachments to be created | `any` | `{}` | no |
+| <a name="input_transit_gateway_default_route_table_association"></a> [transit\_gateway\_default\_route\_table\_association](#input\_transit\_gateway\_default\_route\_table\_association) | (Optional) Boolean whether the VPC Attachment should be associated with the EC2 Transit Gateway association default route table. This cannot be configured or perform drift detection with Resource Access Manager shared EC2 Transit Gateways. Default value: `true`. | `bool` | `true` | no |
+| <a name="input_transit_gateway_default_route_table_propagation"></a> [transit\_gateway\_default\_route\_table\_propagation](#input\_transit\_gateway\_default\_route\_table\_propagation) | (Optional) Boolean whether the VPC Attachment should propagate routes with the EC2 Transit Gateway propagation default route table. This cannot be configured or perform drift detection with Resource Access Manager shared EC2 Transit Gateways. Default value: `true`. | `bool` | `true` | no |
+| <a name="input_transit_gateway_id"></a> [transit\_gateway\_id](#input\_transit\_gateway\_id) | (Required) Identifier of EC2 Transit Gateway. | `string` | `""` | no |
+| <a name="input_transit_gateway_peering_attachments"></a> [transit\_gateway\_peering\_attachments](#input\_transit\_gateway\_peering\_attachments) | Map of objects that define the transit gateway peering attachments to be created | `any` | `{}` | no |
+| <a name="input_transit_gateway_peering_attachments_accepter"></a> [transit\_gateway\_peering\_attachments\_accepter](#input\_transit\_gateway\_peering\_attachments\_accepter) | Map of objects that define the transit gateway peering attachments to be created | `any` | `{}` | no |
+| <a name="input_transit_gateway_routes"></a> [transit\_gateway\_routes](#input\_transit\_gateway\_routes) | Map of objects that define the transit gateway routes to be created | `any` | `{}` | no |
+| <a name="input_vpc_endpoint_routes"></a> [vpc\_endpoint\_routes](#input\_vpc\_endpoint\_routes) | Map of objects that define the nat gateway routes to be created | `any` | `{}` | no |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | (Required) Identifier of EC2 VPC. | `string` | `""` | no |
+| <a name="input_vpc_peering_routes"></a> [vpc\_peering\_routes](#input\_vpc\_peering\_routes) | Map of objects that define the vpc peering routes to be created | `any` | `{}` | no |
 
 ## Outputs
 
-| Name                        | Description                         |
-|-----------------------------|-------------------------------------|
-| Transit Gateway Attachments | map(list(map)) of your attachments. |
-| Transit Gateway Route Ids   | map(list(map)) of your routes Ids.  |
+| Name | Description |
+|------|-------------|
+| <a name="output_transit_gateway_attachments"></a> [transit\_gateway\_attachments](#output\_transit\_gateway\_attachments) | Map of transit gateway attachments. |
+| <a name="output_transit_gateway_route_ids"></a> [transit\_gateway\_route\_ids](#output\_transit\_gateway\_route\_ids) | The IDs of the created routes. |
+<!-- END_TF_DOCS -->

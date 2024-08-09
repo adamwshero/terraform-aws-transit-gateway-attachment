@@ -1,3 +1,9 @@
+## 1.6.0 (August 9, 2024)
+
+FEATURE:
+  * Supports multiple Transit Gateway Peering Attachments
+  * Supports multiple Transit Gateway Peering Attachment Accepters
+
 ## 1.5.0 (August 17, 2023)
 
 FEATURE:
