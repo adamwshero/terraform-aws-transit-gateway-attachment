@@ -1,8 +1,8 @@
 ## 1.6.0 (August 9, 2024)
 
 FEATURE:
-  * Supports multiple TGW attachment peer type
-  * Supports multiple TGW attachment peer accepter
+  * Supports multiple TGW attachment peer types
+  * Supports multiple TGW attachment peer accepters
 
 ## 1.5.0 (August 17, 2023)
 
