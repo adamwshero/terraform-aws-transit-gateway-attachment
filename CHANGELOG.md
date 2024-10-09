@@ -1,3 +1,8 @@
+## 1.7.0 (October 9, 2024)
+
+FEATURE:
+  * Supports Transit Gateway Security Group Referencing
+
 ## 1.6.0 (August 9, 2024)
 
 FEATURE:
