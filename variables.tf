@@ -55,6 +55,12 @@ variable "ipv6_support" {
   default     = "disable"
 }
 
+variable "security_group_referencing_support" {
+  description = "(Optional) Whether Security Group Referencing support is `enabled`. Valid values: `disable`, `enable`. Default value: `disable`."
+  type        = string
+  default     = "disable"
+}
+
 variable "transit_gateway_default_route_table_association" {
   description = "(Optional) Boolean whether the VPC Attachment should be associated with the EC2 Transit Gateway association default route table. This cannot be configured or perform drift detection with Resource Access Manager shared EC2 Transit Gateways. Default value: `true`."
   type        = bool

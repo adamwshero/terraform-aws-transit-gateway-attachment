@@ -154,6 +154,7 @@ No modules.
 | <a name="input_create_peering_attachment_accepter"></a> [create\_peering\_attachment\_accepter](#input\_create\_peering\_attachment\_accepter) | Determines whether to create a tgw peering attachment or not. | `bool` | `false` | no |
 | <a name="input_dns_support"></a> [dns\_support](#input\_dns\_support) | (Optional) Whether DNS support is `enabled`. Valid values: `disable`, `enable`. Default value: `enable`. | `string` | `"enable"` | no |
 | <a name="input_ipv6_support"></a> [ipv6\_support](#input\_ipv6\_support) | (Optional) Whether IPv6 support is `enabled`. Valid values: `disable`, `enable`. Default value: `disable`. | `string` | `"disable"` | no |
+| <a name="input_security_group_referencing_support"></a> [security\_group\_referencing\_support](#input\_security\_group\_referencing\_support) | (Optional) Whether Security Group Referencing support is `enabled`. Valid values: `disable`, `enable`. Default value: `disable`. | `string` | `"disable"` | no |
 | <a name="input_local_gateway_routes"></a> [local\_gateway\_routes](#input\_local\_gateway\_routes) | Map of objects that define the local gateway routes to be created | `any` | `{}` | no |
 | <a name="input_nat_gateway_routes"></a> [nat\_gateway\_routes](#input\_nat\_gateway\_routes) | Map of objects that define the nat gateway routes to be created | `any` | `{}` | no |
 | <a name="input_network_interface_routes"></a> [network\_interface\_routes](#input\_network\_interface\_routes) | Map of objects that define the network interface routes to be created | `any` | `{}` | no |
