@@ -134,7 +134,7 @@ resource "aws_route" "this_nat_gateway_route" {
 
   route_table_id            = each.value.route_table_id
   destination_cidr_block    = each.value.destination_cidr_block
-  vpc_peering_connection_id = each.value.vpc_peering_connection_id
+  nat_gateway_id            = each.value.nat_gateway_id
 }
 
 resource "aws_route" "this_local_gateway_route" {

@@ -1,3 +1,8 @@
+## 1.7.1 (March 7, 2025)
+
+FIX:
+  * Update the NAT Gateway route to use the correct NAT Gateway ID.
+
 ## 1.7.0 (October 9, 2024)
 
 FEATURE:
